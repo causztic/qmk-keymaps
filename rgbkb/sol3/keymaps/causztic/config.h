@@ -9,12 +9,13 @@
 
 #pragma once
 
-// No need for the single versions when multi performance isn't a problem =D
 #undef ENABLE_RGB_MATRIX_SOLID_REACTIVE_WIDE
 #undef ENABLE_RGB_MATRIX_SOLID_REACTIVE_CROSS
 #undef ENABLE_RGB_MATRIX_SOLID_REACTIVE_NEXUS
 #undef ENABLE_RGB_MATRIX_SPLASH
 #undef ENABLE_RGB_MATRIX_SOLID_SPLASH
+
+#define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_SOLID_REACTIVE_SIMPLE // Sets the default mode, if none has been set
 
 // 20m timeout (20m * 60s * 1000mil)
 // #define RGB_DISABLE_TIMEOUT 1200000

@@ -8,14 +8,14 @@ enum sol_keycodes {
     MENU_BTN,
     MENU_UP,
     MENU_DN,
-    RGB_RST
+    RGB_RST,
+    CODE_BK
 };
 
 #define FN   MO(_FN)
 #define WORK DF(_WORK)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-
     [_WORK] = LAYOUT(
         KC_GESC, KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_MINS,                  KC_EQL,  KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC,
         KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_LBRC,                  KC_RBRC, KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSLS,
@@ -32,7 +32,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, _______, _______, _______, _______, RESET,                     _______, _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______,                   _______, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, _______, _______,
         _______, _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______, _______,
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, _______, _______, _______, CODE_BK, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
 
         _______, _______, _______, _______, _______, _______,                                     _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______,                                                       _______, _______, _______, _______, _______
@@ -42,50 +42,47 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        case MENU_BTN:
+        case CODE_BK:
             if (record->event.pressed) {
-                rgb_menu_selection();
+                SEND_STRING("```\n\n```" SS_TAP(X_UP));
             }
             return false;
-        case MENU_UP:
-            if (record->event.pressed) {
-                rgb_menu_action(true);
-            }
-            return false;
-        case MENU_DN:
-            if (record->event.pressed) {
-                rgb_menu_action(false);
-            }
-            return false;
-        case RGB_RST:
-            if (record->event.pressed) {
-                eeconfig_update_rgb_matrix_default();
-            }
-            return false;
-        case TCH_TOG:
-            if (record->event.pressed) {
-                touch_encoder_toggle();
-            }
-            return false; // Skip all further processing of this key
         default:
             return true;
     }
 }
 
-void render_layer_status(void) {
-    // Host Keyboard Layer Status
-    oled_write_P(PSTR("Layer"), false);
-    switch (get_highest_layer(layer_state)) {
-        case _WORK:
-            oled_write_ln_P(PSTR("Work "), false);
-            break;
-        case _FN:
-            oled_write_ln_P(PSTR("Funct"), false);
-            break;
-        default:
-            oled_write_ln_P(PSTR("Undef"), false);
+void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+    if (get_highest_layer(layer_state) > 0) {
+        uint8_t layer = get_highest_layer(layer_state);
+
+        for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+            for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+                uint8_t index = g_led_config.matrix_co[row][col];
+
+                if (index >= led_min && index <= led_max && index != NO_LED &&
+                keymap_key_to_keycode(layer, (keypos_t){col,row}) > KC_TRNS) {
+                    rgb_matrix_set_color(index, RGB_GOLD);
+                }
+            }
+        }
     }
 }
+
+// void render_layer_status(void) {
+//     // Host Keyboard Layer Status
+//     oled_write_P(PSTR("Layer"), false);
+//     switch (get_highest_layer(layer_state)) {
+//         case _WORK:
+//             oled_write_ln_P(PSTR("Work "), false);
+//             break;
+//         case _FN:
+//             oled_write_ln_P(PSTR("Funct"), false);
+//             break;
+//         default:
+//             oled_write_ln_P(PSTR("Undef"), false);
+//     }
+// }
 
 // bool oled_task_user(void) {
 //     render_layer_status();
